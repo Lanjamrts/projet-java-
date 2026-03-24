@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <span>Mini Marketplace</span>
+    <div>
+        <a th:href="@{/products}">Products</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}">Users</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="font-weight:600;">⚡ Admin</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <h1>Dashboard</h1>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p th:text="${totalUsers}">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Products</h3>
+            <p th:text="${totalProducts}">0</p>
+        </div>
+    </div>
+    <div class="quick-links">
+        <a th:href="@{/products}" class="btn">Browse Products</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" class="btn">Manage Users</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/new}" class="btn">Add Product</a>
+    </div>
+</div>
+</body>
+</html>

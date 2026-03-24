@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Utilisateurs</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>⚡ Admin Panel</h1>
+        <p>Mini Marketplace</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Navigation</div>
+        <a th:href="@{/admin}" class="nav-link">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <div class="nav-section">Gestion</div>
+        <a th:href="@{/admin/users}" class="nav-link active">
+            <span class="nav-icon">👥</span> Utilisateurs
+        </a>
+        <a th:href="@{/admin/products}" class="nav-link">
+            <span class="nav-icon">📦</span> Produits
+        </a>
+        <div class="nav-section">App</div>
+        <a th:href="@{/dashboard}" class="nav-link">
+            <span class="nav-icon">🛒</span> Marketplace
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">🚪 Se déconnecter</button>
+        </form>
+    </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+    <div class="topbar">
+        <h2>Gestion des Utilisateurs</h2>
+        <span class="topbar-user">
+            Connecté : <strong sec:authentication="name">admin</strong>
+        </span>
+    </div>
+
+    <div class="content">
+
+        <div th:if="${success}" class="alert alert-success">✅ <span th:text="${success}"></span></div>
+        <div th:if="${error}"   class="alert alert-error">❌ <span th:text="${error}"></span></div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Liste des utilisateurs</h3>
+                <a th:href="@{/admin/users/new}" class="btn btn-primary">+ Nouvel utilisateur</a>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nom d'utilisateur</th>
+                            <th>Email</th>
+                            <th>Rôle</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="u : ${users}">
+                            <td th:text="${u.id}"></td>
+                            <td th:text="${u.username}"></td>
+                            <td th:text="${u.email}"></td>
+                            <td>
+                                <span class="badge"
+                                      th:classappend="${u.role.name() == 'ADMIN'} ? 'badge-admin' : 'badge-user'"
+                                      th:text="${u.role}"></span>
+                            </td>
+                            <td style="display:flex; gap:8px; align-items:center;">
+                                <a th:href="@{/admin/users/edit/{id}(id=${u.id})}" class="btn-sm btn-edit">✏️ Modifier</a>
+                                <a th:href="@{/admin/users/delete/{id}(id=${u.id})}" class="btn-sm btn-danger"
+                                   onclick="return confirm('Supprimer cet utilisateur ?')">🗑️ Supprimer</a>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(users)}">
+                            <td colspan="5" style="text-align:center; color:var(--text-muted); padding:28px;">
+                                Aucun utilisateur trouvé.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>User Form</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <div><a th:href="@{/admin}">Admin Panel ⚡</a></div>
+</nav>
+<div class="container">
+    <h1>User</h1>
+    <form th:action="@{/admin/users/save}" method="post">
+        <input type="text"     name="username" th:value="${user.username}" placeholder="Username" required/><br/>
+        <input type="email"    name="email"    th:value="${user.email}"    placeholder="Email"    required/><br/>
+        <input type="password" name="password" placeholder="Password" required/><br/>
+        <select name="role">
+            <option th:each="r : ${roles}" th:value="${r}" th:text="${r}"
+                    th:selected="${user.role == r}"></option>
+        </select><br/><br/>
+        <button type="submit" class="btn">Save</button>
+        <a th:href="@{/admin/users}" class="btn">Cancel</a>
+    </form>
+</div>
+</body>
+</html>

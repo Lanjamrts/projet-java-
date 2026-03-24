@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${product.name} + ' - Mini Marketplace'">Product Details</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar">
+    <span>Mini Marketplace</span>
+    <div>
+        <a th:href="@{/dashboard}">Dashboard</a>
+        <a th:href="@{/products}">Products</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/users}">Users</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="font-weight:600;">⚡ Admin</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-row">
+        <h1 th:text="${product.name}">Product Name</h1>
+        <a th:href="@{/products}" class="btn btn-secondary">← Back to Products</a>
+    </div>
+
+    <div class="product-detail-card">
+        <div class="product-info">
+            <div class="price" th:text="${'$' + product.price}">$0.00</div>
+            <div class="stock" th:text="${product.stock} + ' in stock'">0 in stock</div>
+        </div>
+
+        <div class="description" th:text="${product.description}">
+            Description goes here...
+        </div>
+
+        <div th:if="${product.qrCode}" class="qr-section">
+            <h3>Scan QR Code to View Product</h3>
+            <img th:src="@{'data:image/png;base64,' + ${product.qrCode}}"
+                 width="120" height="120" alt="Product QR Code"/>
+        </div>
+        
+        <div sec:authorize="hasRole('ADMIN')" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
+            <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-secondary">Edit Product</a>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

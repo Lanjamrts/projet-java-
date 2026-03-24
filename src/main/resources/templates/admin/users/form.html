@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isNew} ? 'Admin — Nouvel utilisateur' : 'Admin — Modifier utilisateur'">Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>⚡ Admin Panel</h1>
+        <p>Mini Marketplace</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Navigation</div>
+        <a th:href="@{/admin}" class="nav-link">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <div class="nav-section">Gestion</div>
+        <a th:href="@{/admin/users}" class="nav-link active">
+            <span class="nav-icon">👥</span> Utilisateurs
+        </a>
+        <a th:href="@{/admin/products}" class="nav-link">
+            <span class="nav-icon">📦</span> Produits
+        </a>
+        <div class="nav-section">App</div>
+        <a th:href="@{/dashboard}" class="nav-link">
+            <span class="nav-icon">🛒</span> Marketplace
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">🚪 Se déconnecter</button>
+        </form>
+    </div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+    <div class="topbar">
+        <h2 th:text="${isNew} ? 'Nouvel utilisateur' : 'Modifier l\'utilisateur'">Utilisateur</h2>
+        <a th:href="@{/admin/users}" class="btn-sm btn-edit">← Retour</a>
+    </div>
+
+    <div class="content">
+
+        <div th:if="${error}" class="alert alert-error">❌ <span th:text="${error}"></span></div>
+
+        <div class="form-card">
+            <form th:action="${isNew} ? @{/admin/users/save} : @{/admin/users/update/{id}(id=${user.id})}"
+                  method="post">
+
+                <div class="form-group">
+                    <label>Nom d'utilisateur</label>
+                    <input type="text" name="username" th:value="${user.username}"
+                           placeholder="ex: john_doe" required/>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" th:value="${user.email}"
+                           placeholder="ex: john@example.com" required/>
+                </div>
+
+                <div class="form-group">
+                    <label th:text="${isNew} ? 'Mot de passe' : 'Nouveau mot de passe (laisser vide pour conserver)'">
+                        Mot de passe
+                    </label>
+                    <input type="password" name="password"
+                           th:required="${isNew}"
+                           placeholder="••••••••"/>
+                </div>
+
+                <div class="form-group">
+                    <label>Rôle</label>
+                    <select name="role">
+                        <option th:each="r : ${roles}"
+                                th:value="${r}"
+                                th:text="${r}"
+                                th:selected="${user.role == r}"></option>
+                    </select>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span th:text="${isNew} ? '✅ Créer' : '💾 Enregistrer'">Enregistrer</span>
+                    </button>
+                    <a th:href="@{/admin/users}" class="btn" style="background:var(--bg-hover); color:var(--text-muted);">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

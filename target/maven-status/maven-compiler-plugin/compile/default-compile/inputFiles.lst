@@ -1,0 +1,15 @@
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/controller/UserController.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/config/DataInitializer.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/service/ProductService.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/controller/AuthController.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/MarketplaceApplication.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/controller/DashboardController.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/service/UserService.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/repository/ProductRepository.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/repository/UserRepository.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/model/Product.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/controller/AdminController.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/controller/ProductController.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/config/SecurityConfig.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/model/User.java
+/home/lanja/Documents/mini-marketplace/src/main/java/com/marketplace/service/CustomUserDetailsService.java

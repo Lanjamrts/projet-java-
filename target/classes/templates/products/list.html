@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Products</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a th:href="@{/dashboard}">Dashboard</a>
+    <div>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}">Users</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="font-weight:600;">⚡ Admin</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Logout</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-row">
+        <h1>Products</h1>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/new}" class="btn">+ Add Product</a>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Stock</th>
+            <th>QR Code</th>
+            <th sec:authorize="hasRole('ADMIN')">Actions</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+            <td><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}"></a></td>
+            <td th:text="${product.description}"></td>
+            <td th:text="${'$' + product.price}"></td>
+            <td th:text="${product.stock}"></td>
+            <td>
+                <img th:if="${product.qrCode}" th:src="@{'data:image/png;base64,' + ${product.qrCode}}"
+                     width="60" height="60" alt="QR"/>
+            </td>
+            <td sec:authorize="hasRole('ADMIN')">
+                <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn-sm">Edit</a>
+                <a th:href="@{/admin/products/delete/{id}(id=${product.id})}" class="btn-sm btn-danger"
+                   onclick="return confirm('Delete?')">Delete</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
