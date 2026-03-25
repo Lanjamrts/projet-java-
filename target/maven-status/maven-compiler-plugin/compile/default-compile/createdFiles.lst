@@ -8,7 +8,7 @@ com/marketplace/repository/ProductRepository.class
 com/marketplace/MarketplaceApplication.class
 com/marketplace/controller/DashboardController.class
 com/marketplace/controller/ProductController.class
-com/marketplace/controller/UserController.class
+com/marketplace/controller/AdminController.class
 com/marketplace/service/CustomUserDetailsService.class
 com/marketplace/model/Product.class
 com/marketplace/repository/UserRepository.class

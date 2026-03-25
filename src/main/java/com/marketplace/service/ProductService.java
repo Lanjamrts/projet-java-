@@ -11,7 +11,10 @@ import org.springframework.stereotype.Service;
 import java.io.ByteArrayOutputStream;
 import java.util.Base64;
 import java.util.List;
+import jakarta.persistence.EntityNotFoundException;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 public class ProductService {
 
@@ -26,7 +29,8 @@ public class ProductService {
     }
 
     public Product findById(Long id) {
-        return productRepository.findById(id).orElseThrow();
+        return productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + id));
     }
 
     public Product save(Product product) {
@@ -61,6 +65,7 @@ public class ProductService {
             MatrixToImageWriter.writeToStream(matrix, "PNG", out);
             return Base64.getEncoder().encodeToString(out.toByteArray());
         } catch (Exception e) {
+            log.error("Failed to generate QR code for product ID: {}", productId, e);
             return null;
         }
     }
