@@ -30,8 +30,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/register", "/login", "/css/**", "/admin-css/**", "/products/{id}").permitAll()
+                // Pages publiques
+                .requestMatchers("/register", "/login", "/css/**", "/js/**",
+                                 "/products", "/products/{id}").permitAll()
+                // Zone admin : ADMIN uniquement
                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                // Panier : utilisateurs connectés uniquement
+                .requestMatchers("/cart/**").authenticated()
+                // Tout le reste : connecté
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form
@@ -49,7 +55,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationManager authManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder builder = http.getSharedObject(AuthenticationManagerBuilder.class);
+        AuthenticationManagerBuilder builder =
+                http.getSharedObject(AuthenticationManagerBuilder.class);
         builder.userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
         return builder.build();
     }

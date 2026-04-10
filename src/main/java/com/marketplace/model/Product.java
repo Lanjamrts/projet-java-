@@ -25,4 +25,9 @@ public class Product {
 
     @Column(columnDefinition = "TEXT")
     private String qrCode;
+
+    // Nouvelle relation : chaque produit appartient à une catégorie (optionnel)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "category_id")
+    private Category category;
 }

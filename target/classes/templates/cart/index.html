@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mon Panier — Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<nav class="navbar">
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn active">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}"
+                  th:text="${cartCount}">0</span>
+        </a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Déconnexion</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="toast toast-success" th:text="${success}"></div>
+    <div th:if="${error}"   class="toast toast-error"   th:text="${error}"></div>
+
+    <div class="header-row">
+        <h1>Mon Panier</h1>
+        <a th:href="@{/products}" class="btn btn-secondary">← Continuer mes achats</a>
+    </div>
+
+    <!-- Panier vide -->
+    <div class="empty-state" th:if="${#lists.isEmpty(items)}">
+        <p style="font-size:3rem; margin-bottom:16px;">🛒</p>
+        <p>Votre panier est vide.</p>
+        <a th:href="@{/products}" class="btn" style="margin-top:16px;">
+            Parcourir les produits
+        </a>
+    </div>
+
+    <!-- Contenu du panier -->
+    <div th:if="${not #lists.isEmpty(items)}" class="cart-layout">
+
+        <!-- Liste des articles -->
+        <div class="cart-items">
+            <div class="cart-item" th:each="item : ${items}">
+
+                <!-- Lettre initiale en guise de visuel -->
+                <div class="cart-item-img">
+                    <span th:text="${#strings.substring(item.product.name, 0, 1)}">P</span>
+                </div>
+
+                <div class="cart-item-info">
+                    <a th:href="@{/products/{id}(id=${item.product.id})}"
+                       th:text="${item.product.name}"
+                       class="cart-item-name">Produit</a>
+                    <span class="cart-item-unit"
+                          th:text="'$' + ${#numbers.formatDecimal(item.product.price,1,'COMMA',2,'POINT')} + ' / unité'">
+                    </span>
+                </div>
+
+                <!-- Contrôles quantité -->
+                <div class="cart-qty">
+                    <form th:action="@{/cart/decrement/{id}(id=${item.id})}" method="post">
+                        <button type="submit" class="qty-btn">−</button>
+                    </form>
+                    <span class="qty-value" th:text="${item.quantity}">1</span>
+                    <form th:action="@{/cart/increment/{id}(id=${item.id})}" method="post">
+                        <button type="submit" class="qty-btn"
+                                th:disabled="${item.quantity >= item.product.stock}">+</button>
+                    </form>
+                </div>
+
+                <!-- Sous-total -->
+                <div class="cart-item-subtotal"
+                     th:text="'$' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">
+                    $0.00
+                </div>
+
+                <!-- Supprimer -->
+                <form th:action="@{/cart/remove/{id}(id=${item.id})}" method="post">
+                    <button type="submit" class="btn btn-sm btn-danger"
+                            title="Retirer du panier">🗑️</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Résumé de commande -->
+        <div class="cart-summary">
+            <h3>Résumé</h3>
+
+            <div class="summary-line" th:each="item : ${items}">
+                <span th:text="${item.product.name} + ' × ' + ${item.quantity}">Produit × 1</span>
+                <span th:text="'$' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+
+            <div class="summary-divider"></div>
+
+            <div class="summary-total">
+                <span>Total</span>
+                <span th:text="'$' + ${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+
+            <!-- Bouton commander (placeholder) -->
+            <button class="btn btn-full" onclick="alert('Fonctionnalité de paiement à venir !')">
+                ✅ Commander
+            </button>
+
+            <!-- Vider le panier -->
+            <form th:action="@{/cart/clear}" method="post" style="margin-top:12px"
+                  onsubmit="return confirm('Vider le panier ?')">
+                <button type="submit" class="btn btn-full btn-secondary">
+                    🗑️ Vider le panier
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.querySelectorAll('.toast').forEach(t => {
+    setTimeout(() => t.style.opacity = '0', 3500);
+    setTimeout(() => t.remove(), 4000);
+});
+</script>
+</body>
+</html>

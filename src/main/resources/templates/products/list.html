@@ -1,57 +1,162 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Products</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Produits — Mini Marketplace</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+
 <nav class="navbar">
-    <a th:href="@{/dashboard}">Dashboard</a>
-    <div>
-        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}">Users</a>
-        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="font-weight:600;">⚡ Admin</a>
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}" class="active">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}"
+                  th:text="${cartCount}">0</span>
+        </a>
         <form th:action="@{/logout}" method="post" style="display:inline">
-            <button type="submit" class="btn-link">Logout</button>
+            <button type="submit" class="btn-link">Déconnexion</button>
         </form>
     </div>
 </nav>
 
 <div class="container">
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="toast toast-success" th:text="${success}"></div>
+    <div th:if="${error}" class="toast toast-error" th:text="${error}"></div>
+
     <div class="header-row">
-        <h1>Products</h1>
-        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/new}" class="btn">+ Add Product</a>
+        <h1>Produits</h1>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/new}" class="btn">
+            + Ajouter un produit
+        </a>
     </div>
 
-    <table>
-        <thead>
-        <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>QR Code</th>
-            <th sec:authorize="hasRole('ADMIN')">Actions</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="product : ${products}">
-            <td><a th:href="@{/products/{id}(id=${product.id})}" th:text="${product.name}"></a></td>
-            <td th:text="${product.description}"></td>
-            <td th:text="${'$' + product.price}"></td>
-            <td th:text="${product.stock}"></td>
-            <td>
-                <img th:if="${product.qrCode}" th:src="@{'data:image/png;base64,' + ${product.qrCode}}"
-                     width="60" height="60" alt="QR"/>
-            </td>
-            <td sec:authorize="hasRole('ADMIN')">
-                <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn-sm">Edit</a>
-                <a th:href="@{/admin/products/delete/{id}(id=${product.id})}" class="btn-sm btn-danger"
-                   onclick="return confirm('Delete?')">Delete</a>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+    <!-- Barre de recherche et filtres -->
+    <form th:action="@{/products}" method="get" class="search-bar">
+        <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" name="q" placeholder="Rechercher un produit…"
+                   th:value="${q}" class="search-input"/>
+        </div>
+
+        <select name="categoryId" class="filter-select">
+            <option value="">Toutes les catégories</option>
+            <option th:each="cat : ${categories}"
+                    th:value="${cat.id}"
+                    th:text="${cat.name}"
+                    th:selected="${selectedCategory != null and selectedCategory == cat.id}">
+            </option>
+        </select>
+
+        <input type="number" name="minPrice" placeholder="Prix min" step="0.01"
+               th:value="${minPrice}" class="filter-input" style="width:110px"/>
+        <input type="number" name="maxPrice" placeholder="Prix max" step="0.01"
+               th:value="${maxPrice}" class="filter-input" style="width:110px"/>
+
+        <label class="filter-checkbox">
+            <input type="checkbox" name="inStock" value="true"
+                   th:checked="${inStock}"/> En stock uniquement
+        </label>
+
+        <button type="submit" class="btn">Filtrer</button>
+        <a th:href="@{/products}" class="btn btn-secondary">Réinitialiser</a>
+    </form>
+
+    <!-- Résultats -->
+    <p class="result-count" th:if="${products != null}">
+        <span th:text="${#lists.size(products)}">0</span> produit(s) trouvé(s)
+    </p>
+
+    <!-- Grille de produits -->
+    <div class="product-grid" th:if="${not #lists.isEmpty(products)}">
+        <div class="product-card" th:each="product : ${products}">
+
+            <!-- Badge stock -->
+            <div class="product-badges">
+                <span th:if="${product.category != null}"
+                      class="badge badge-category"
+                      th:text="${product.category.name}"></span>
+                <span th:if="${product.stock == 0}"
+                      class="badge badge-out">Rupture</span>
+                <span th:if="${product.stock > 0 and product.stock <= 5}"
+                      class="badge badge-low">Dernières unités</span>
+            </div>
+
+            <!-- Placeholder image -->
+            <div class="product-img-placeholder">
+                <span th:text="${#strings.substring(product.name, 0, 1)}">P</span>
+            </div>
+
+            <div class="product-card-body">
+                <h3 class="product-name">
+                    <a th:href="@{/products/{id}(id=${product.id})}"
+                       th:text="${product.name}">Nom produit</a>
+                </h3>
+                <p class="product-desc"
+                   th:text="${#strings.abbreviate(product.description, 80)}">Description…</p>
+
+                <div class="product-footer">
+                    <div>
+                        <span class="product-price"
+                              th:text="${'$' + #numbers.formatDecimal(product.price,1,'COMMA',2,'POINT')}">
+                            $0.00
+                        </span>
+                        <span class="product-stock"
+                              th:text="${product.stock > 0} ? ${product.stock + ' en stock'} : 'Rupture'">
+                        </span>
+                    </div>
+
+                    <div class="product-actions">
+                        <!-- Ajouter au panier (utilisateurs connectés, stock > 0) -->
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}"
+                              method="post"
+                              sec:authorize="isAuthenticated()">
+                            <button type="submit" class="btn btn-sm"
+                                    th:disabled="${product.stock == 0}">
+                                🛒
+                            </button>
+                        </form>
+                        <a th:href="@{/products/{id}(id=${product.id})}"
+                           class="btn btn-sm btn-secondary">Voir</a>
+                        <a sec:authorize="hasRole('ADMIN')"
+                           th:href="@{/admin/products/edit/{id}(id=${product.id})}"
+                           class="btn btn-sm">✏️</a>
+                        <!-- Suppression via POST (correction sécurité) -->
+                        <form sec:authorize="hasRole('ADMIN')"
+                              th:action="@{/admin/products/delete/{id}(id=${product.id})}"
+                              method="post" style="display:inline"
+                              onsubmit="return confirm('Supprimer ce produit ?')">
+                            <button type="submit" class="btn btn-sm btn-danger">🗑️</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message si aucun résultat -->
+    <div class="empty-state" th:if="${#lists.isEmpty(products)}">
+        <p>😕 Aucun produit ne correspond à votre recherche.</p>
+        <a th:href="@{/products}" class="btn">Voir tous les produits</a>
+    </div>
+
 </div>
+
+<script>
+// Auto-dismiss toasts après 4s
+document.querySelectorAll('.toast').forEach(t => {
+    setTimeout(() => t.style.opacity = '0', 3500);
+    setTimeout(() => t.remove(), 4000);
+});
+</script>
 </body>
 </html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Catégories — Admin</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>⚡ Admin Panel</h1>
+        <p>Mini Marketplace</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Navigation</div>
+        <a th:href="@{/admin}" class="nav-link">
+            <span class="nav-icon">🏠</span> Dashboard
+        </a>
+        <div class="nav-section">Gestion</div>
+        <a th:href="@{/admin/users}" class="nav-link">
+            <span class="nav-icon">👥</span> Utilisateurs
+        </a>
+        <a th:href="@{/admin/products}" class="nav-link">
+            <span class="nav-icon">📦</span> Produits
+        </a>
+        <a th:href="@{/admin/categories}" class="nav-link active">
+            <span class="nav-icon">🏷️</span> Catégories
+        </a>
+        <div class="nav-section">App</div>
+        <a th:href="@{/dashboard}" class="nav-link">
+            <span class="nav-icon">🛒</span> Marketplace
+        </a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">🚪 Se déconnecter</button>
+        </form>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <h2>Catégories</h2>
+    </div>
+
+    <div class="content">
+
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3>Toutes les catégories</h3>
+                <a th:href="@{/admin/categories/new}" class="btn btn-primary">+ Nouvelle catégorie</a>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nom</th>
+                            <th>Slug</th>
+                            <th>Nb produits</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="cat : ${categories}">
+                            <td th:text="${cat.id}"></td>
+                            <td th:text="${cat.name}"></td>
+                            <td><code th:text="${cat.slug}"></code></td>
+                            <td th:text="${cat.products != null ? #lists.size(cat.products) : 0}"></td>
+                            <td>
+                                <a th:href="@{/admin/categories/edit/{id}(id=${cat.id})}"
+                                   class="btn-sm btn-edit">✏️ Modifier</a>
+                                <form th:action="@{/admin/categories/delete/{id}(id=${cat.id})}"
+                                      method="post" style="display:inline"
+                                      onsubmit="return confirm('Supprimer cette catégorie ?')">
+                                    <button type="submit" class="btn-sm btn-danger">🗑️ Supprimer</button>
+                                </form>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(categories)}">
+                            <td colspan="5" style="text-align:center; color: var(--text-muted);">
+                                Aucune catégorie. <a th:href="@{/admin/categories/new}">Créer la première →</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+</body>
+</html>

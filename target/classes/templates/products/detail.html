@@ -1,52 +1,112 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title th:text="${product.name} + ' - Mini Marketplace'">Product Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${product.name} + ' — Marketplace'">Détail produit</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
 <nav class="navbar">
-    <span>Mini Marketplace</span>
-    <div>
-        <a th:href="@{/dashboard}">Dashboard</a>
-        <a th:href="@{/products}">Products</a>
-        <a sec:authorize="hasRole('ADMIN')" th:href="@{/users}">Users</a>
-        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}" style="font-weight:600;">⚡ Admin</a>
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}"
+                  th:text="${cartCount}">0</span>
+        </a>
         <form th:action="@{/logout}" method="post" style="display:inline">
-            <button type="submit" class="btn-link">Logout</button>
+            <button type="submit" class="btn-link">Déconnexion</button>
         </form>
     </div>
 </nav>
 
 <div class="container">
+
+    <!-- Flash messages -->
+    <div th:if="${success}" class="toast toast-success" th:text="${success}"></div>
+
     <div class="header-row">
-        <h1 th:text="${product.name}">Product Name</h1>
-        <a th:href="@{/products}" class="btn btn-secondary">← Back to Products</a>
+        <a th:href="@{/products}" class="btn btn-secondary">← Retour aux produits</a>
+        <div sec:authorize="hasRole('ADMIN')">
+            <a th:href="@{/admin/products/edit/{id}(id=${product.id})}"
+               class="btn btn-secondary">✏️ Modifier</a>
+        </div>
     </div>
 
     <div class="product-detail-card">
+
+        <!-- En-tête : nom + badges -->
+        <div class="detail-header">
+            <div>
+                <div class="detail-badges">
+                    <span th:if="${product.category != null}"
+                          class="badge badge-category"
+                          th:text="${product.category.name}"></span>
+                    <span th:if="${product.stock == 0}" class="badge badge-out">Rupture de stock</span>
+                    <span th:if="${product.stock > 0 and product.stock <= 5}"
+                          class="badge badge-low">Dernières unités</span>
+                    <span th:if="${product.stock > 5}" class="badge badge-in">En stock</span>
+                </div>
+                <h1 th:text="${product.name}">Nom du produit</h1>
+            </div>
+        </div>
+
+        <!-- Prix et stock -->
         <div class="product-info">
-            <div class="price" th:text="${'$' + product.price}">$0.00</div>
-            <div class="stock" th:text="${product.stock} + ' in stock'">0 in stock</div>
+            <div class="price"
+                 th:text="${'$' + #numbers.formatDecimal(product.price,1,'COMMA',2,'POINT')}">
+                $0.00
+            </div>
+            <div class="stock-info">
+                <span th:if="${product.stock > 0}"
+                      th:text="${product.stock} + ' unité(s) disponible(s)'">
+                </span>
+                <span th:if="${product.stock == 0}" style="color: var(--danger)">
+                    Rupture de stock
+                </span>
+            </div>
         </div>
 
-        <div class="description" th:text="${product.description}">
-            Description goes here...
+        <!-- Description -->
+        <div class="description" th:text="${product.description}">Description…</div>
+
+        <!-- Bouton Ajouter au panier -->
+        <div sec:authorize="isAuthenticated()" class="add-to-cart-section">
+            <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                <button type="submit" class="btn btn-add-cart"
+                        th:disabled="${product.stock == 0}"
+                        th:text="${product.stock > 0} ? '🛒 Ajouter au panier' : 'Rupture de stock'">
+                    Ajouter au panier
+                </button>
+            </form>
+        </div>
+        <div sec:authorize="!isAuthenticated()" class="add-to-cart-section">
+            <a th:href="@{/login}" class="btn">Se connecter pour acheter</a>
         </div>
 
+        <!-- QR Code -->
         <div th:if="${product.qrCode}" class="qr-section">
-            <h3>Scan QR Code to View Product</h3>
+            <h3>QR Code produit</h3>
+            <p class="qr-hint">Scannez pour accéder directement à cette page</p>
             <img th:src="@{'data:image/png;base64,' + ${product.qrCode}}"
-                 width="120" height="120" alt="Product QR Code"/>
+                 width="140" height="140" alt="QR Code"/>
         </div>
-        
-        <div sec:authorize="hasRole('ADMIN')" style="margin-top: 20px; border-top: 1px solid var(--border); padding-top: 20px;">
-            <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-secondary">Edit Product</a>
-        </div>
+
     </div>
 </div>
 
+<script>
+document.querySelectorAll('.toast').forEach(t => {
+    setTimeout(() => t.style.opacity = '0', 3500);
+    setTimeout(() => t.remove(), 4000);
+});
+</script>
 </body>
 </html>

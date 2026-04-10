@@ -1,14 +1,13 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — Produits</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Produits — Admin</title>
     <link rel="stylesheet" th:href="@{/css/admin.css}">
 </head>
 <body>
 
-<!-- Sidebar -->
 <aside class="sidebar">
     <div class="sidebar-brand">
         <h1>⚡ Admin Panel</h1>
@@ -26,6 +25,9 @@
         <a th:href="@{/admin/products}" class="nav-link active">
             <span class="nav-icon">📦</span> Produits
         </a>
+        <a th:href="@{/admin/categories}" class="nav-link">
+            <span class="nav-icon">🏷️</span> Catégories
+        </a>
         <div class="nav-section">App</div>
         <a th:href="@{/dashboard}" class="nav-link">
             <span class="nav-icon">🛒</span> Marketplace
@@ -38,23 +40,20 @@
     </div>
 </aside>
 
-<!-- Main -->
 <main class="main">
     <div class="topbar">
-        <h2>Gestion des Produits</h2>
-        <span class="topbar-user">
-            Connecté : <strong sec:authentication="name">admin</strong>
-        </span>
+        <h2>Produits</h2>
     </div>
 
     <div class="content">
 
-        <div th:if="${success}" class="alert alert-success">✅ <span th:text="${success}"></span></div>
-        <div th:if="${error}"   class="alert alert-error">❌ <span th:text="${error}"></span></div>
+        <!-- Flash messages -->
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+        <div th:if="${error}"   class="alert alert-error"   th:text="${error}"></div>
 
         <div class="card">
             <div class="card-header">
-                <h3>Liste des produits</h3>
+                <h3>Tous les produits</h3>
                 <a th:href="@{/admin/products/new}" class="btn btn-primary">+ Nouveau produit</a>
             </div>
             <div class="card-body">
@@ -63,7 +62,7 @@
                         <tr>
                             <th>#</th>
                             <th>Nom</th>
-                            <th>Description</th>
+                            <th>Catégorie</th>
                             <th>Prix</th>
                             <th>Stock</th>
                             <th>QR</th>
@@ -73,24 +72,58 @@
                     <tbody>
                         <tr th:each="p : ${products}">
                             <td th:text="${p.id}"></td>
-                            <td th:text="${p.name}"></td>
-                            <td th:text="${p.description}"></td>
-                            <td th:text="${'$' + p.price}"></td>
-                            <td th:text="${p.stock}"></td>
+                            <td>
+                                <a th:href="@{/products/{id}(id=${p.id})}"
+                                   th:text="${p.name}"
+                                   target="_blank">Produit</a>
+                            </td>
+                            <td>
+                                <span th:if="${p.category != null}"
+                                      class="badge badge-admin-cat"
+                                      th:text="${p.category.name}">Catégorie</span>
+                                <span th:if="${p.category == null}"
+                                      style="color: var(--text-muted); font-size:0.8rem;">—</span>
+                            </td>
+                            <td th:text="'$' + ${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}"></td>
+                            <td>
+                                <!-- Badge stock coloré -->
+                                <span th:if="${p.stock == 0}"
+                                      class="badge badge-danger"
+                                      th:text="${p.stock}">0</span>
+                                <span th:if="${p.stock > 0 and p.stock <= 5}"
+                                      class="badge badge-warning"
+                                      th:text="${p.stock}">0</span>
+                                <span th:if="${p.stock > 5}"
+                                      class="badge badge-success"
+                                      th:text="${p.stock}">0</span>
+                            </td>
                             <td>
                                 <img th:if="${p.qrCode}"
                                      th:src="@{'data:image/png;base64,' + ${p.qrCode}}"
-                                     width="40" height="40" alt="QR"/>
+                                     width="40" height="40" alt="QR"
+                                     style="border-radius:4px;"/>
+                                <span th:if="${p.qrCode == null}"
+                                      style="color:var(--text-muted); font-size:0.8rem;">—</span>
                             </td>
-                            <td style="display:flex; gap:8px; align-items:center;">
-                                <a th:href="@{/admin/products/edit/{id}(id=${p.id})}" class="btn-sm btn-edit">✏️ Modifier</a>
-                                <a th:href="@{/admin/products/delete/{id}(id=${p.id})}" class="btn-sm btn-danger"
-                                   onclick="return confirm('Supprimer ce produit ?')">🗑️ Supprimer</a>
+                            <td>
+                                <div style="display:flex; gap:6px; align-items:center;">
+                                    <a th:href="@{/admin/products/edit/{id}(id=${p.id})}"
+                                       class="btn-sm btn-edit">✏️ Modifier</a>
+                                    <!-- Suppression via POST (sécurisé) -->
+                                    <form th:action="@{/admin/products/delete/{id}(id=${p.id})}"
+                                          method="post"
+                                          onsubmit="return confirm('Supprimer « ' + /*[[${p.name}]]*/ '' + ' » ?')">
+                                        <button type="submit" class="btn-sm btn-danger">
+                                            🗑️ Supprimer
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                         <tr th:if="${#lists.isEmpty(products)}">
-                            <td colspan="7" style="text-align:center; color:var(--text-muted); padding:28px;">
-                                Aucun produit trouvé.
+                            <td colspan="7" style="text-align:center; color:var(--text-muted); padding:32px;">
+                                Aucun produit.
+                                <a th:href="@{/admin/products/new}">Créer le premier →</a>
                             </td>
                         </tr>
                     </tbody>
@@ -101,5 +134,11 @@
     </div>
 </main>
 
+<script>
+document.querySelectorAll('.alert').forEach(a => {
+    setTimeout(() => a.style.opacity = '0', 3500);
+    setTimeout(() => a.remove(), 4000);
+});
+</script>
 </body>
 </html>
