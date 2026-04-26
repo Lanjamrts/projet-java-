@@ -64,7 +64,7 @@
                        th:text="${item.product.name}"
                        class="cart-item-name">Produit</a>
                     <span class="cart-item-unit"
-                          th:text="'$' + ${#numbers.formatDecimal(item.product.price,1,'COMMA',2,'POINT')} + ' / unité'">
+                          th:text="'Ar' + ${#numbers.formatDecimal(item.product.price,1,'COMMA',2,'POINT')} + ' / unité'">
                     </span>
                 </div>
 
@@ -82,7 +82,7 @@
 
                 <!-- Sous-total -->
                 <div class="cart-item-subtotal"
-                     th:text="'$' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">
+                     th:text="'Ar' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">
                     $0.00
                 </div>
 
@@ -100,20 +100,20 @@
 
             <div class="summary-line" th:each="item : ${items}">
                 <span th:text="${item.product.name} + ' × ' + ${item.quantity}">Produit × 1</span>
-                <span th:text="'$' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">$0.00</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">$0.00</span>
             </div>
 
             <div class="summary-divider"></div>
 
             <div class="summary-total">
                 <span>Total</span>
-                <span th:text="'$' + ${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">$0.00</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">$0.00</span>
             </div>
 
             <!-- Bouton commander (placeholder) -->
-            <button class="btn btn-full" onclick="alert('Fonctionnalité de paiement à venir !')">
+            <a th:href="@{/cart/checkout}" class="btn btn-full">
                 ✅ Commander
-            </button>
+            </a>
 
             <!-- Vider le panier -->
             <form th:action="@{/cart/clear}" method="post" style="margin-top:12px"

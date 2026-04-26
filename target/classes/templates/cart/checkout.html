@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Checkout — Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+        <a th:href="@{/orders}">Mes commandes</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+        </a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Déconnexion</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-row">
+        <h1>Finaliser ma commande</h1>
+        <a th:href="@{/cart}" class="btn btn-secondary">← Retour au panier</a>
+    </div>
+
+    <div class="checkout-grid">
+        <section class="checkout-form">
+            <h2>Adresse de livraison</h2>
+            <form th:action="@{/cart/checkout}" method="post" th:object="${order}">
+                <label for="shippingAddress">Adresse complète</label>
+                <textarea id="shippingAddress" th:field="*{shippingAddress}" required rows="4" placeholder="Nom, rue, code postal, ville"></textarea>
+
+                <button type="submit" class="btn btn-full">Valider ma commande</button>
+            </form>
+        </section>
+
+        <aside class="checkout-summary">
+            <h2>Récapitulatif</h2>
+
+            <div class="summary-line" th:each="item : ${items}">
+                <span th:text="${item.product.name} + ' × ' + ${item.quantity}">Produit × 1</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+
+            <div class="summary-divider"></div>
+            <div class="summary-total">
+                <span>Total</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(total,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+        </aside>
+    </div>
+</div>
+</body>
+</html>

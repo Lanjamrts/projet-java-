@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mes commandes — Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+        </a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Déconnexion</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-row">
+        <h1>Mes commandes</h1>
+        <a th:href="@{/products}" class="btn btn-secondary">Continuer mes achats</a>
+    </div>
+
+    <div th:if="${#lists.isEmpty(orders)}" class="empty-state">
+        <p style="font-size:3rem; margin-bottom:16px;">📦</p>
+        <p>Vous n'avez aucune commande pour le moment.</p>
+        <a th:href="@{/products}" class="btn" style="margin-top:16px;">Voir les produits</a>
+    </div>
+
+    <div th:if="${not #lists.isEmpty(orders)}" class="order-list">
+        <div class="order-card" th:each="order : ${orders}">
+            <div class="order-card-header">
+                <div>
+                    <h3 th:text="'Commande #' + ${order.id}">Commande #1</h3>
+                    <small th:text="${order.createdAt}">Date</small>
+                </div>
+                <span class="badge" th:text="${order.status}">PENDING</span>
+            </div>
+            <div class="order-card-body">
+                <p th:text="'Total : Ar' + ${#numbers.formatDecimal(order.total,1,'COMMA',2,'POINT')}">Total</p>
+                <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm">Voir le détail</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

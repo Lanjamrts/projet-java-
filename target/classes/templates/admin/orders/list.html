@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Commandes</title>
+    <link rel="stylesheet" th:href="@{/css/admin.css}">
+</head>
+<body>
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>⚡ Admin Panel</h1>
+        <p>Mini Marketplace</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section">Navigation</div>
+        <a th:href="@{/admin}" class="nav-link">🏠 Dashboard</a>
+        <div class="nav-section">Gestion</div>
+        <a th:href="@{/admin/users}" class="nav-link">👥 Utilisateurs</a>
+        <a th:href="@{/admin/products}" class="nav-link">📦 Produits</a>
+        <a th:href="@{/admin/orders}" class="nav-link active">📋 Commandes</a>
+        <a th:href="@{/admin/categories}" class="nav-link">🏷️ Catégories</a>
+        <div class="nav-section">App</div>
+        <a th:href="@{/dashboard}" class="nav-link">🛒 Marketplace</a>
+    </nav>
+    <div class="sidebar-footer">
+        <form th:action="@{/logout}" method="post">
+            <button type="submit">🚪 Se déconnecter</button>
+        </form>
+    </div>
+</aside>
+
+<main class="main">
+    <div class="topbar">
+        <h2>Commandes</h2>
+        <span class="topbar-user">Connecté en tant que <strong sec:authentication="name">admin</strong></span>
+    </div>
+
+    <div class="content">
+        <div class="card">
+            <div class="card-header">
+                <h3>Liste des commandes</h3>
+            </div>
+            <div class="card-body">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Client</th>
+                            <th>Date</th>
+                            <th>Montant</th>
+                            <th>Statut</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${orders}">
+                            <td th:text="${order.id}">1</td>
+                            <td th:text="${order.user.username}">user</td>
+                            <td th:text="${#dates.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</td>
+                            <td th:text="'Ar' + ${#numbers.formatDecimal(order.total,1,'COMMA',2,'POINT')}">$0.00</td>
+                            <td>
+                                <span class="badge" th:classappend="${order.status.name() == 'PENDING'} ? 'badge-pending' : ''"
+                                      th:classappend="${order.status.name() == 'CONFIRMED'} ? 'badge-confirmed' : ''"
+                                      th:classappend="${order.status.name() == 'SHIPPED'} ? 'badge-shipped' : ''"
+                                      th:classappend="${order.status.name() == 'DELIVERED'} ? 'badge-delivered' : ''"
+                                      th:text="${order.status}">PENDING</span>
+                            </td>
+                            <td>
+                                <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn-sm btn-edit">Voir</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
+</body>
+</html>

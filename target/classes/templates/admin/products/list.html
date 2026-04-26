@@ -84,7 +84,7 @@
                                 <span th:if="${p.category == null}"
                                       style="color: var(--text-muted); font-size:0.8rem;">—</span>
                             </td>
-                            <td th:text="'$' + ${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}"></td>
+                            <td th:text="'Ar' + ${#numbers.formatDecimal(p.price,1,'COMMA',2,'POINT')}"></td>
                             <td>
                                 <!-- Badge stock coloré -->
                                 <span th:if="${p.stock == 0}"

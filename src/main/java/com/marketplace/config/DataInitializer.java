@@ -73,7 +73,7 @@ public class DataInitializer {
                 Product p1 = new Product();
                 p1.setName("Laptop Pro");
                 p1.setDescription("Ordinateur portable haute performance, idéal pour les développeurs.");
-                p1.setPrice(999.99);
+                p1.setPrice(999.99 * 5000); // 4,999,950 Ar
                 p1.setStock(10);
                 p1.setCategory(electronics);
                 productService.save(p1);
@@ -81,7 +81,7 @@ public class DataInitializer {
                 Product p2 = new Product();
                 p2.setName("Souris sans fil");
                 p2.setDescription("Souris ergonomique sans fil, autonomie 12 mois.");
-                p2.setPrice(29.99);
+                p2.setPrice(29.99 * 5000); // 149,950 Ar
                 p2.setStock(50);
                 p2.setCategory(accessories);
                 productService.save(p2);
@@ -89,7 +89,7 @@ public class DataInitializer {
                 Product p3 = new Product();
                 p3.setName("Clavier mécanique");
                 p3.setDescription("Clavier mécanique rétroéclairé RGB, switches Cherry MX Blue.");
-                p3.setPrice(89.99);
+                p3.setPrice(89.99 * 5000); // 449,950 Ar
                 p3.setStock(25);
                 p3.setCategory(accessories);
                 productService.save(p3);
@@ -97,7 +97,7 @@ public class DataInitializer {
                 Product p4 = new Product();
                 p4.setName("Écran 27 pouces 4K");
                 p4.setDescription("Écran IPS 4K 27 pouces, 144Hz, idéal pour le gaming et la création.");
-                p4.setPrice(449.99);
+                p4.setPrice(449.99 * 5000); // 2,249,950 Ar
                 p4.setStock(8);
                 p4.setCategory(electronics);
                 productService.save(p4);
@@ -105,7 +105,7 @@ public class DataInitializer {
                 Product p5 = new Product();
                 p5.setName("Lampe de bureau LED");
                 p5.setDescription("Lampe LED à intensité réglable, protection des yeux.");
-                p5.setPrice(34.99);
+                p5.setPrice(34.99 * 5000); // 174,950 Ar
                 p5.setStock(0);
                 p5.setCategory(home);
                 productService.save(p5);
@@ -113,7 +113,7 @@ public class DataInitializer {
                 Product p6 = new Product();
                 p6.setName("Casque audio Bluetooth");
                 p6.setDescription("Casque sans fil avec réduction de bruit active, 30h d'autonomie.");
-                p6.setPrice(149.99);
+                p6.setPrice(149.99 * 5000); // 749,950 Ar
                 p6.setStock(3);
                 p6.setCategory(electronics);
                 productService.save(p6);

@@ -2,8 +2,10 @@ package com.marketplace.controller;
 
 import com.marketplace.model.User;
 import com.marketplace.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
 @Controller
@@ -27,9 +29,14 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public String register(@ModelAttribute User user, Model model) {
+    public String register(@Valid @ModelAttribute User user,
+                           BindingResult result,
+                           Model model) {
+        if (result.hasErrors()) {
+            return "auth/register";
+        }
         if (userService.existsByUsername(user.getUsername())) {
-            model.addAttribute("error", "Username already exists");
+            result.rejectValue("username", "duplicate", "Ce nom d'utilisateur est déjà pris.");
             return "auth/register";
         }
         user.setRole(User.Role.USER);

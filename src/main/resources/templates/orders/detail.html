@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Détail de commande — Marketplace</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <a th:href="@{/dashboard}" class="navbar-brand">🛒 Marketplace</a>
+    <div class="navbar-links">
+        <a th:href="@{/products}">Produits</a>
+        <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin}">⚡ Admin</a>
+    </div>
+    <div class="navbar-right">
+        <a th:href="@{/cart}" class="cart-btn">
+            🛍️ Panier
+            <span class="cart-badge" th:if="${cartCount != null and cartCount > 0}" th:text="${cartCount}">0</span>
+        </a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn-link">Déconnexion</button>
+        </form>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="header-row">
+        <h1 th:text="'Commande #' + ${order.id}">Commande #</h1>
+        <a th:href="@{/orders}" class="btn btn-secondary">← Retour aux commandes</a>
+    </div>
+
+    <div class="order-detail">
+        <div class="order-detail-section">
+            <h2>Informations</h2>
+            <p><strong>Statut :</strong> <span th:text="${order.status}">PENDING</span></p>
+            <p><strong>Date :</strong> <span th:text="${order.createdAt}">Date</span></p>
+            <p><strong>Adresse de livraison :</strong></p>
+            <p th:text="${order.shippingAddress}">Adresse de livraison</p>
+        </div>
+
+        <div class="order-detail-section">
+            <h2>Articles</h2>
+            <div class="order-item" th:each="item : ${order.items}">
+                <span th:text="${item.product.name}">Produit</span>
+                <span th:text="${item.quantity} + ' × Ar' + ${#numbers.formatDecimal(item.price,1,'COMMA',2,'POINT')}">1 × $0.00</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(item.subtotal,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-total">
+                <span>Total payé</span>
+                <span th:text="'Ar' + ${#numbers.formatDecimal(order.total,1,'COMMA',2,'POINT')}">$0.00</span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

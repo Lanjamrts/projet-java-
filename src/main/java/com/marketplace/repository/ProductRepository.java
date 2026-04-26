@@ -2,12 +2,23 @@ package com.marketplace.repository;
 
 import com.marketplace.model.Product;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
+
+    /**
+     * Décrémente le stock d'un produit de façon atomique.
+     * La clause "AND stock >= :qty" garantit qu'on ne passe jamais en négatif.
+     * Retourne le nombre de lignes mises à jour (0 = stock insuffisant).
+     */
+    @Modifying
+    @Query("UPDATE Product p SET p.stock = p.stock - :qty " +
+           "WHERE p.id = :id AND p.stock >= :qty")
+    int decrementStock(@Param("id") Long id, @Param("qty") int qty);
 
     // Recherche par nom (insensible à la casse)
     List<Product> findByNameContainingIgnoreCase(String name);

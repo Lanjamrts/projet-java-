@@ -1,0 +1,109 @@
+<!--
+  FRAGMENT THYMELEAF - affichage des erreurs de validation
+  À ajouter dans chaque champ de formulaire existant.
+
+  ═══════════════════════════════════════════════════════
+  EXEMPLE pour admin/products/form.html
+  ═══════════════════════════════════════════════════════
+
+  AVANT (sans validation) :
+  ──────────────────────────
+  <input type="text" th:field="*{name}" class="form-control"/>
+
+  APRÈS (avec validation) :
+  ──────────────────────────
+  <input type="text" th:field="*{name}"
+         th:class="${#fields.hasErrors('name')} ? 'form-control is-invalid' : 'form-control'"/>
+  <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
+       th:errors="*{name}">Erreur nom</div>
+
+
+  ═══════════════════════════════════════════════════════
+  CHAMPS À MODIFIER dans chaque formulaire
+  ═══════════════════════════════════════════════════════
+
+  admin/products/form.html :
+    - name       → @NotBlank, @Size(2,100)
+    - price      → @Positive
+    - stock      → @PositiveOrZero
+    - description → @Size(max=1000)
+
+  admin/users/form.html :
+    - username   → @NotBlank, @Size(3,50)
+    - email      → @Email
+    - password   → @NotBlank (seulement en création)
+
+  admin/categories/form.html :
+    - name       → @NotBlank, @Size(2,50)
+
+  auth/register.html :
+    - username   → @NotBlank, @Size(3,50)
+    - email      → @Email
+    - password   → @NotBlank
+
+
+  ═══════════════════════════════════════════════════════
+  EXEMPLE COMPLET — champ name dans products/form.html
+  ═══════════════════════════════════════════════════════
+-->
+
+<!-- Champ name — exemple complet -->
+<div class="mb-3">
+    <label for="name" class="form-label">Nom du produit</label>
+    <input type="text"
+           id="name"
+           th:field="*{name}"
+           th:class="${#fields.hasErrors('name')} ? 'form-control is-invalid' : 'form-control'"
+           placeholder="Ex: Laptop Pro"/>
+    <div class="invalid-feedback"
+         th:if="${#fields.hasErrors('name')}"
+         th:errors="*{name}">
+        Erreur de validation
+    </div>
+</div>
+
+<!-- Champ price — exemple complet -->
+<div class="mb-3">
+    <label for="price" class="form-label">Prix (€)</label>
+    <input type="number"
+           id="price"
+           step="0.01"
+           th:field="*{price}"
+           th:class="${#fields.hasErrors('price')} ? 'form-control is-invalid' : 'form-control'"
+           placeholder="Ex: 99.99"/>
+    <div class="invalid-feedback"
+         th:if="${#fields.hasErrors('price')}"
+         th:errors="*{price}">
+        Erreur de validation
+    </div>
+</div>
+
+<!-- Champ stock — exemple complet -->
+<div class="mb-3">
+    <label for="stock" class="form-label">Stock</label>
+    <input type="number"
+           id="stock"
+           th:field="*{stock}"
+           th:class="${#fields.hasErrors('stock')} ? 'form-control is-invalid' : 'form-control'"
+           placeholder="Ex: 10"/>
+    <div class="invalid-feedback"
+         th:if="${#fields.hasErrors('stock')}"
+         th:errors="*{stock}">
+        Erreur de validation
+    </div>
+</div>
+
+<!-- Champ email — exemple complet (users/form.html et auth/register.html) -->
+<div class="mb-3">
+    <label for="email" class="form-label">Email</label>
+    <input type="email"
+           id="email"
+           th:field="*{email}"
+           th:class="${#fields.hasErrors('email')} ? 'form-control is-invalid' : 'form-control'"
+           placeholder="Ex: user@exemple.com"/>
+    <div class="invalid-feedback"
+         th:if="${#fields.hasErrors('email')}"
+         th:errors="*{email}">
+        Erreur de validation
+    </div>
+</div>

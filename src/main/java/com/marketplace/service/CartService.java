@@ -27,68 +27,91 @@ public class CartService {
         this.productService = productService;
     }
 
-    // Récupère l'utilisateur depuis Spring Security
     private User getUser(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("Utilisateur introuvable : " + username));
     }
 
-    // Retourne tous les articles du panier
     public List<CartItem> getCart(String username) {
         return cartItemRepository.findByUser(getUser(username));
     }
 
-    // Calcule le total du panier
     public Double getTotal(String username) {
         return getCart(username).stream()
                 .mapToDouble(CartItem::getSubtotal)
                 .sum();
     }
 
-    // Nombre d'articles (pour le badge navbar)
     public int getCount(String username) {
         return cartItemRepository.countByUser(getUser(username));
     }
 
-    // Ajouter un produit au panier (ou incrémenter la quantité)
+    /**
+     * Ajoute un produit au panier (ou incrémente si déjà présent).
+     * Lève une exception si le stock est dépassé au lieu d'ignorer silencieusement.
+     */
     @Transactional
     public void addItem(String username, Long productId) {
         User user = getUser(username);
         Product product = productService.findById(productId);
 
+        if (product.getStock() <= 0) {
+            throw new IllegalStateException(
+                    "Le produit « " + product.getName() + " » est en rupture de stock.");
+        }
+
         Optional<CartItem> existing = cartItemRepository.findByUserAndProductId(user, productId);
 
         if (existing.isPresent()) {
-            // Produit déjà dans le panier → on incrémente
             CartItem item = existing.get();
-            if (item.getQuantity() < product.getStock()) {
-                item.setQuantity(item.getQuantity() + 1);
-                cartItemRepository.save(item);
+            if (item.getQuantity() >= product.getStock()) {
+                throw new IllegalStateException(
+                        "Stock maximum atteint pour « " + product.getName() +
+                        " » (" + product.getStock() + " disponible(s)).");
             }
+            item.setQuantity(item.getQuantity() + 1);
+            cartItemRepository.save(item);
         } else {
-            // Nouveau produit dans le panier
-            if (product.getStock() > 0) {
-                CartItem item = new CartItem();
-                item.setUser(user);
-                item.setProduct(product);
-                item.setQuantity(1);
-                cartItemRepository.save(item);
-            }
+            CartItem item = new CartItem();
+            item.setUser(user);
+            item.setProduct(product);
+            item.setQuantity(1);
+            cartItemRepository.save(item);
         }
     }
 
-    // Retirer un article du panier
+    /**
+     * Incrémente un article existant du panier par son ID.
+     * Remplace la logique cassée de CartController qui rechargeait tout le panier.
+     */
+    @Transactional
+    public void incrementItem(String username, Long itemId) {
+        CartItem item = cartItemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("Article introuvable"));
+
+        if (!item.getUser().getUsername().equals(username)) {
+            throw new SecurityException("Accès refusé.");
+        }
+
+        Product product = item.getProduct();
+        if (item.getQuantity() >= product.getStock()) {
+            throw new IllegalStateException(
+                    "Stock maximum atteint pour « " + product.getName() +
+                    " » (" + product.getStock() + " disponible(s)).");
+        }
+        item.setQuantity(item.getQuantity() + 1);
+        cartItemRepository.save(item);
+    }
+
     @Transactional
     public void removeItem(String username, Long itemId) {
         CartItem item = cartItemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("Article introuvable"));
-        // Sécurité : on vérifie que l'article appartient bien à l'utilisateur
         if (item.getUser().getUsername().equals(username)) {
             cartItemRepository.delete(item);
         }
     }
 
-    // Décrémenter la quantité d'un article
     @Transactional
     public void decrementItem(String username, Long itemId) {
         CartItem item = cartItemRepository.findById(itemId)
@@ -103,7 +126,6 @@ public class CartService {
         }
     }
 
-    // Vider complètement le panier
     @Transactional
     public void clearCart(String username) {
         cartItemRepository.deleteByUser(getUser(username));

@@ -26,7 +26,6 @@ public class CategoryService {
                 .orElseThrow(() -> new EntityNotFoundException("Catégorie introuvable : " + id));
     }
 
-    // AJOUT : méthode utilisée par DataInitializer
     public Category findByName(String name) {
         return categoryRepository.findByName(name)
                 .orElseThrow(() -> new EntityNotFoundException("Catégorie introuvable : " + name));
@@ -37,12 +36,29 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
 
+    /**
+     * AJOUT : méthode update() centralisée.
+     * Avant, AdminController reconstruisait le slug directement — logique métier
+     * dupliquée et hors du service. Désormais tout passe ici.
+     */
+    public Category update(Long id, Category updated) {
+        Category existing = findById(id);
+        existing.setName(updated.getName());
+        existing.setSlug(toSlug(updated.getName())); // logique slug dans le service, pas dans le controller
+        return categoryRepository.save(existing);
+    }
+
     public void delete(Long id) {
         categoryRepository.deleteById(id);
     }
 
     public boolean existsByName(String name) {
         return categoryRepository.existsByName(name);
+    }
+
+    /** AJOUT : nécessaire pour AdminDashboardController */
+    public long count() {
+        return categoryRepository.count();
     }
 
     private String toSlug(String input) {
