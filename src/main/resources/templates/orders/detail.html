@@ -16,6 +16,7 @@
             margin-bottom: 24px;
             font-size: 1rem;
             font-weight: 600;
+            transition: all .4s ease;
         }
         .status-banner .icon { font-size: 1.5rem; }
         .status-banner .text { display: flex; flex-direction: column; gap: 2px; }
@@ -26,7 +27,6 @@
         .status-banner.SHIPPED   { background: rgba(139,92,246,.12); border-left: 4px solid #8b5cf6; color: #8b5cf6; }
         .status-banner.DELIVERED { background: rgba(16,185,129,.12); border-left: 4px solid #10b981; color: #10b981; }
 
-        /* Barre de progression */
         .progress-bar {
             display: flex;
             justify-content: space-between;
@@ -38,41 +38,53 @@
         .progress-bar::before {
             content: '';
             position: absolute;
-            top: 18px;
-            left: 8%;
-            right: 8%;
+            top: 18px; left: 8%; right: 8%;
             height: 2px;
             background: rgba(255,255,255,.1);
             z-index: 0;
         }
-        .step {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            z-index: 1;
-        }
+        .step { display: flex; flex-direction: column; align-items: center; gap: 6px; z-index: 1; }
         .step-circle {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
             font-size: 1rem;
             background: rgba(255,255,255,.05);
             border: 2px solid rgba(255,255,255,.15);
             color: rgba(255,255,255,.3);
+            transition: all .4s ease;
         }
-        .step-label {
-            font-size: .72rem;
-            color: rgba(255,255,255,.4);
-            text-align: center;
+        .step-label { font-size: .72rem; color: rgba(255,255,255,.4); text-align: center; transition: all .4s ease; }
+        .step.done   .step-circle  { background: rgba(16,185,129,.2);  border-color: #10b981; color: #10b981; }
+        .step.done   .step-label   { color: #10b981; }
+        .step.active .step-circle  { background: rgba(59,130,246,.25); border-color: #3b82f6; color: #3b82f6; }
+        .step.active .step-label   { color: #3b82f6; font-weight: 600; }
+
+        .live-indicator {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: .78rem; color: rgba(255,255,255,.4); margin-left: 12px;
         }
-        .step.done .step-circle  { background: rgba(16,185,129,.2);  border-color: #10b981; color: #10b981; }
-        .step.done .step-label   { color: #10b981; }
-        .step.active .step-circle{ background: rgba(59,130,246,.25); border-color: #3b82f6; color: #3b82f6; }
-        .step.active .step-label { color: #3b82f6; font-weight: 600; }
+        .live-dot {
+            width: 7px; height: 7px; border-radius: 50%;
+            background: #10b981; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity:1; transform:scale(1); }
+            50%      { opacity:.4; transform:scale(.8); }
+        }
+
+        .toast-update {
+            position: fixed; bottom: 24px; right: 24px;
+            background: #1e293b; border-left: 4px solid #3b82f6;
+            color: #e2e8f0; padding: 14px 20px; border-radius: 10px;
+            font-size: .9rem; font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            display: none; z-index: 9999;
+            animation: slideIn .3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to   { transform: translateX(0); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -95,25 +107,31 @@
 
 <div class="container">
     <div class="header-row">
-        <h1 th:text="'Commande #' + ${order.id}">Commande #</h1>
+        <h1>
+            <span th:text="'Commande #' + ${order.id}">Commande #</span>
+            <span class="live-indicator"><span class="live-dot"></span> En direct</span>
+        </h1>
         <a th:href="@{/orders}" class="btn btn-secondary">← Retour aux commandes</a>
     </div>
 
-    <!-- ══ BANNIÈRE STATUT ══ -->
-    <div class="status-banner"
-         th:classappend="${order.status.name()}">
-        <span class="icon"
+    <!-- ══ BANNIÈRE STATUT (mise à jour dynamique) ══ -->
+    <div class="status-banner" id="statusBanner"
+         th:classappend="${order.status.name()}"
+         th:data-status="${order.status.name()}">
+        <span class="icon" id="statusIcon"
               th:text="${order.status.name() == 'PENDING'}   ? '⏳' :
                        (${order.status.name() == 'CONFIRMED'} ? '✅' :
                        (${order.status.name() == 'SHIPPED'}   ? '🚚' : '🎉'))">
         </span>
         <div class="text">
-            <span th:text="${order.status.name() == 'PENDING'}   ? 'Commande en attente de confirmation' :
+            <span id="statusTitle"
+                  th:text="${order.status.name() == 'PENDING'}   ? 'Commande en attente de confirmation' :
                            (${order.status.name() == 'CONFIRMED'} ? 'Commande confirmée par le vendeur !' :
                            (${order.status.name() == 'SHIPPED'}   ? 'Votre commande est en route !'      :
-                                                                     'Commande livrée — Merci !'        ))">
+                                                                     'Commande livrée — Merci !'))">
             </span>
-            <small th:text="${order.status.name() == 'PENDING'}   ? 'Nous traitons votre commande.' :
+            <small id="statusSub"
+                   th:text="${order.status.name() == 'PENDING'}   ? 'Nous traitons votre commande.' :
                             (${order.status.name() == 'CONFIRMED'} ? 'Votre commande sera bientôt expédiée.' :
                             (${order.status.name() == 'SHIPPED'}   ? 'Vous recevrez votre colis très prochainement.' :
                                                                       'Votre commande a bien été reçue.'))">
@@ -122,25 +140,25 @@
     </div>
 
     <!-- ══ BARRE DE PROGRESSION ══ -->
-    <div class="progress-bar">
-        <div class="step"
+    <div class="progress-bar" id="progressBar">
+        <div class="step" id="step-PENDING"
              th:classappend="${order.status.name() == 'PENDING'} ? 'active' : 'done'">
             <div class="step-circle">📋</div>
             <span class="step-label">Commandé</span>
         </div>
-        <div class="step"
+        <div class="step" id="step-CONFIRMED"
              th:classappend="${order.status.name() == 'CONFIRMED'} ? 'active' :
                              (${order.status.name() == 'SHIPPED' or order.status.name() == 'DELIVERED'} ? 'done' : '')">
             <div class="step-circle">✅</div>
             <span class="step-label">Confirmé</span>
         </div>
-        <div class="step"
+        <div class="step" id="step-SHIPPED"
              th:classappend="${order.status.name() == 'SHIPPED'} ? 'active' :
                              (${order.status.name() == 'DELIVERED'} ? 'done' : '')">
             <div class="step-circle">🚚</div>
             <span class="step-label">Expédié</span>
         </div>
-        <div class="step"
+        <div class="step" id="step-DELIVERED"
              th:classappend="${order.status.name() == 'DELIVERED'} ? 'active' : ''">
             <div class="step-circle">🎉</div>
             <span class="step-label">Livré</span>
@@ -173,5 +191,66 @@
         </div>
     </div>
 </div>
+
+<!-- Toast -->
+<div class="toast-update" id="toastUpdate"></div>
+
+<script th:inline="javascript">
+(function () {
+    const orderId  = /*[[${order.id}]]*/ 0;
+    let   current  = /*[[${order.status.name()}]]*/ 'PENDING';
+
+    const config = {
+        PENDING:   { icon:'⏳', title:'Commande en attente de confirmation',    sub:'Nous traitons votre commande.',                         steps:['active','','',''] },
+        CONFIRMED: { icon:'✅', title:'Commande confirmée par le vendeur !',    sub:'Votre commande sera bientôt expédiée.',                  steps:['done','active','',''] },
+        SHIPPED:   { icon:'🚚', title:'Votre commande est en route !',          sub:'Vous recevrez votre colis très prochainement.',           steps:['done','done','active',''] },
+        DELIVERED: { icon:'🎉', title:'Commande livrée — Merci !',             sub:'Votre commande a bien été reçue.',                       steps:['done','done','done','active'] }
+    };
+    const stepIds = ['step-PENDING','step-CONFIRMED','step-SHIPPED','step-DELIVERED'];
+
+    function applyStatus(s) {
+        const cfg = config[s];
+        if (!cfg) return;
+
+        // Bannière
+        const banner = document.getElementById('statusBanner');
+        banner.className = 'status-banner ' + s;
+        document.getElementById('statusIcon').textContent  = cfg.icon;
+        document.getElementById('statusTitle').textContent = cfg.title;
+        document.getElementById('statusSub').textContent   = cfg.sub;
+
+        // Steps
+        cfg.steps.forEach((cls, i) => {
+            const el = document.getElementById(stepIds[i]);
+            if (!el) return;
+            el.className = 'step' + (cls ? ' ' + cls : '');
+        });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toastUpdate');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 5000);
+    }
+
+    async function poll() {
+        try {
+            const res = await fetch('/orders/statuses', { credentials: 'same-origin' });
+            if (!res.ok) return;
+            const data = await res.json();
+            const newStatus = data[String(orderId)];
+            if (newStatus && newStatus !== current) {
+                current = newStatus;
+                applyStatus(newStatus);
+                showToast('🔔 Votre commande vient d\'être mise à jour : ' + newStatus);
+            }
+        } catch(e) { /* silencieux */ }
+    }
+
+    // Poll toutes les 10 secondes
+    setInterval(poll, 10000);
+})();
+</script>
 </body>
 </html>

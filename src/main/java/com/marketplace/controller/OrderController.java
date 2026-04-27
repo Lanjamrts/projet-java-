@@ -1,5 +1,6 @@
 package com.marketplace.controller;
 
+import com.marketplace.model.Order;
 import com.marketplace.service.CartService;
 import com.marketplace.service.OrderService;
 import org.springframework.security.core.Authentication;
@@ -7,19 +8,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
-/**
- * Controller dédié à l'historique des commandes utilisateur.
- *
- * AVANT : ce controller contenait aussi GET/POST /cart/checkout,
- *         ce qui mélangait la logique panier et commande.
- *
- * APRÈS : il ne gère QUE /orders/** — afficher la liste et le détail
- *         des commandes passées. Le checkout a été déplacé dans CartController.
- *
- * Règle claire :
- *   /cart/**   → CartController  (panier + passage de commande)
- *   /orders/** → OrderController (consultation des commandes passées)
- */
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 @Controller
 @RequestMapping("/orders")
 public class OrderController {
@@ -48,5 +40,21 @@ public class OrderController {
         model.addAttribute("order", orderService.findOrderForUser(username, id));
         model.addAttribute("cartCount", cartService.getCount(username));
         return "orders/detail";
+    }
+
+    /**
+     * Endpoint JSON appelé par le polling JavaScript côté user.
+     * Retourne un map { orderId -> statut } pour toutes les commandes de l'utilisateur.
+     * Exemple : { "1": "CONFIRMED", "2": "PENDING" }
+     */
+    @GetMapping("/statuses")
+    @ResponseBody
+    public Map<String, String> getStatuses(Authentication auth) {
+        List<Order> orders = orderService.findOrdersByUser(auth.getName());
+        Map<String, String> result = new LinkedHashMap<>();
+        for (Order o : orders) {
+            result.put(String.valueOf(o.getId()), o.getStatus().name());
+        }
+        return result;
     }
 }

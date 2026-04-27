@@ -4,6 +4,75 @@
     <meta charset="UTF-8">
     <title>Dashboard</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
+    <style>
+        .badge-PENDING   { background: rgba(245,158,11,.15);  color: #f59e0b; border: 1px solid #f59e0b; padding: 6px 12px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+        .badge-CONFIRMED { background: rgba(59,130,246,.15);  color: #3b82f6; border: 1px solid #3b82f6; padding: 6px 12px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+        .badge-SHIPPED   { background: rgba(139,92,246,.15);  color: #8b5cf6; border: 1px solid #8b5cf6; padding: 6px 12px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+        .badge-DELIVERED { background: rgba(16,185,129,.15);  color: #10b981; border: 1px solid #10b981; padding: 6px 12px; border-radius: 20px; font-size: .85rem; font-weight: 500; }
+        
+        .orders-section {
+            margin-top: 32px;
+            padding: 24px;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.1);
+        }
+        
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: rgba(30, 41, 59, 0.5);
+            border-radius: 8px;
+            margin-bottom: 12px;
+            border-left: 4px solid rgba(59, 130, 246, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .order-item:hover {
+            background: rgba(30, 41, 59, 0.8);
+            border-left-color: #3b82f6;
+        }
+        
+        .order-info {
+            flex: 1;
+        }
+        
+        .order-number {
+            font-weight: 600;
+            color: #e2e8f0;
+            margin-bottom: 4px;
+        }
+        
+        .order-details {
+            font-size: .9rem;
+            color: rgba(226, 232, 240, 0.6);
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .order-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .btn-small {
+            padding: 8px 16px;
+            font-size: .9rem;
+            text-decoration: none;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 24px;
+            color: rgba(226, 232, 240, 0.5);
+        }
+    </style>
 </head>
 <body>
 <nav class="navbar">
@@ -30,11 +99,127 @@
             <p th:text="${totalProducts}">0</p>
         </div>
     </div>
+    
+    <!-- Section des commandes récentes de l'utilisateur -->
+    <div th:if="${userOrders != null}" class="orders-section">
+        <h2 style="margin-top: 0;">📦 Mes commandes récentes</h2>
+        
+        <div th:if="${#lists.isEmpty(userOrders)}" class="empty-orders">
+            <p>Aucune commande pour le moment.</p>
+            <a th:href="@{/products}" class="btn" style="margin-top: 12px; display: inline-block;">Découvrir les produits</a>
+        </div>
+        
+        <div th:if="${not #lists.isEmpty(userOrders)}">
+            <div class="order-item" th:each="order : ${#lists.size(userOrders) > 5 ? #lists.subList(userOrders, 0, 5) : userOrders}"
+                 th:data-order-id="${order.id}"
+                 th:data-status="${order.status.name()}">
+                <div class="order-info">
+                    <div class="order-number" th:text="'Commande #' + ${order.id}">Commande #1</div>
+                    <div class="order-details">
+                        <span th:text="'Total: Ar' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}">Total</span>
+                        <span th:text="'Date: ' + ${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                    </div>
+                </div>
+                <div class="order-actions">
+                    <span class="badge"
+                          th:classappend="'badge-' + ${order.status.name()}"
+                          th:text="${order.status.name() == 'PENDING'}   ? '⏳ En attente'   :
+                                   (${order.status.name() == 'CONFIRMED'} ? '✅ Confirmée'    :
+                                   (${order.status.name() == 'SHIPPED'}   ? '🚚 Expédiée'    :
+                                                                             '🎉 Livrée'))">
+                    </span>
+                    <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-small">Voir détail</a>
+                </div>
+            </div>
+            
+            <div th:if="${#lists.size(userOrders) > 5}" style="margin-top: 16px; text-align: center;">
+                <a th:href="@{/orders}" class="btn">Voir toutes mes commandes</a>
+            </div>
+        </div>
+    </div>
+    
     <div class="quick-links">
         <a th:href="@{/products}" class="btn">Browse Products</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/users}" class="btn">Manage Users</a>
         <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/products/new}" class="btn">Add Product</a>
     </div>
 </div>
-</body>
-</html>
+
+<script th:inline="javascript">
+(function () {
+    const ordersSection = document.querySelector('.orders-section');
+    
+    if (ordersSection) {
+        // Snapshot des statuts actuels au chargement
+        const currentStatuses = {};
+        document.querySelectorAll('[data-order-id]').forEach(item => {
+            const orderId = item.dataset.orderId;
+            currentStatuses[orderId] = item.dataset.status || '';
+        });
+
+        const labels = {
+            PENDING:   '⏳ En attente',
+            CONFIRMED: '✅ Confirmée',
+            SHIPPED:   '🚚 Expédiée',
+            DELIVERED: '🎉 Livrée'
+        };
+
+        function showToast(msg) {
+            const t = document.createElement('div');
+            t.textContent = msg;
+            t.style.cssText = `
+                position: fixed;
+                bottom: 24px; right: 24px;
+                background: #1e293b;
+                border-left: 4px solid #3b82f6;
+                color: #e2e8f0;
+                padding: 14px 20px;
+                border-radius: 10px;
+                font-size: .9rem;
+                font-weight: 500;
+                box-shadow: 0 8px 32px rgba(0,0,0,.4);
+                z-index: 9999;
+                animation: slideIn .3s ease;
+            `;
+            document.body.appendChild(t);
+            setTimeout(() => { t.remove(); }, 4000);
+        }
+
+        function updateBadge(item, newStatus) {
+            const badge = item.querySelector('.badge');
+            if (!badge) return;
+            badge.className = 'badge badge-' + newStatus;
+            badge.textContent = labels[newStatus] || newStatus;
+            item.dataset.status = newStatus;
+        }
+
+        async function pollStatuses() {
+            try {
+                const res = await fetch('/orders/statuses', { credentials: 'same-origin' });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                let changed = false;
+                for (const [id, newStatus] of Object.entries(data)) {
+                    if (currentStatuses.hasOwnProperty(id) && currentStatuses[id] !== newStatus) {
+                        const item = document.querySelector(`[data-order-id="${id}"]`);
+                        if (item) {
+                            updateBadge(item, newStatus);
+                            currentStatuses[id] = newStatus;
+                            changed = true;
+                        }
+                    }
+                }
+                if (changed) {
+                    showToast('🔔 Un statut de commande a été mis à jour !');
+                }
+            } catch (e) {
+                console.log('Polling supprimé (offline ou erreur)');
+            }
+        }
+
+        // Poll toutes les 10 secondes
+        setInterval(pollStatuses, 10000);
+    }
+})();
+</script>

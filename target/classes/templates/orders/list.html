@@ -12,20 +12,44 @@
         .badge-SHIPPED   { background: rgba(139,92,246,.15);  color: #8b5cf6; border: 1px solid #8b5cf6; }
         .badge-DELIVERED { background: rgba(16,185,129,.15);  color: #10b981; border: 1px solid #10b981; }
 
-        .status-banner {
-            display: flex;
+        .live-indicator {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            border-radius: 10px;
-            margin-bottom: 24px;
-            font-size: .95rem;
-            font-weight: 500;
+            gap: 6px;
+            font-size: .78rem;
+            color: rgba(255,255,255,.4);
+            margin-left: 12px;
         }
-        .status-banner.PENDING   { background: rgba(245,158,11,.12); border-left: 4px solid #f59e0b; color: #f59e0b; }
-        .status-banner.CONFIRMED { background: rgba(59,130,246,.12); border-left: 4px solid #3b82f6; color: #3b82f6; }
-        .status-banner.SHIPPED   { background: rgba(139,92,246,.12); border-left: 4px solid #8b5cf6; color: #8b5cf6; }
-        .status-banner.DELIVERED { background: rgba(16,185,129,.12); border-left: 4px solid #10b981; color: #10b981; }
+        .live-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: .4; transform: scale(.8); }
+        }
+
+        .toast-update {
+            position: fixed;
+            bottom: 24px; right: 24px;
+            background: #1e293b;
+            border-left: 4px solid #3b82f6;
+            color: #e2e8f0;
+            padding: 14px 20px;
+            border-radius: 10px;
+            font-size: .9rem;
+            font-weight: 500;
+            box-shadow: 0 8px 32px rgba(0,0,0,.4);
+            display: none;
+            z-index: 9999;
+            animation: slideIn .3s ease;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100px); opacity: 0; }
+            to   { transform: translateX(0);     opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -48,7 +72,12 @@
 
 <div class="container">
     <div class="header-row">
-        <h1>Mes commandes</h1>
+        <h1>
+            Mes commandes
+            <span class="live-indicator">
+                <span class="live-dot"></span> En direct
+            </span>
+        </h1>
         <a th:href="@{/products}" class="btn btn-secondary">Continuer mes achats</a>
     </div>
 
@@ -58,14 +87,15 @@
         <a th:href="@{/products}" class="btn" style="margin-top:16px;">Voir les produits</a>
     </div>
 
-    <div th:if="${not #lists.isEmpty(orders)}" class="order-list">
-        <div class="order-card" th:each="order : ${orders}">
+    <div th:if="${not #lists.isEmpty(orders)}" class="order-list" id="orderList">
+        <div class="order-card" th:each="order : ${orders}"
+             th:id="'order-' + ${order.id}"
+             th:data-status="${order.status.name()}">
             <div class="order-card-header">
                 <div>
                     <h3 th:text="'Commande #' + ${order.id}">Commande #1</h3>
                     <small th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Date</small>
                 </div>
-                <!-- Badge coloré selon le statut -->
                 <span class="badge"
                       th:classappend="'badge-' + ${order.status.name()}"
                       th:text="${order.status.name() == 'PENDING'}   ? '⏳ En attente'   :
@@ -81,5 +111,70 @@
         </div>
     </div>
 </div>
+
+<!-- Toast de notification -->
+<div class="toast-update" id="toastUpdate">🔔 Statut de commande mis à jour !</div>
+
+<script th:inline="javascript">
+(function () {
+    // Snapshot des statuts actuels au chargement
+    const currentStatuses = {};
+    document.querySelectorAll('[data-status]').forEach(card => {
+        currentStatuses[card.id] = card.dataset.status;
+    });
+
+    const labels = {
+        PENDING:   '⏳ En attente',
+        CONFIRMED: '✅ Confirmée',
+        SHIPPED:   '🚚 Expédiée',
+        DELIVERED: '🎉 Livrée'
+    };
+
+    function showToast(msg) {
+        const t = document.getElementById('toastUpdate');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => { t.style.display = 'none'; }, 4000);
+    }
+
+    function updateBadge(card, newStatus) {
+        const badge = card.querySelector('.badge');
+        if (!badge) return;
+        // Enlever toutes les classes badge-*
+        badge.className = 'badge badge-' + newStatus;
+        badge.textContent = labels[newStatus] || newStatus;
+        card.dataset.status = newStatus;
+    }
+
+    async function pollStatuses() {
+        try {
+            const res = await fetch('/orders/statuses', { credentials: 'same-origin' });
+            if (!res.ok) return;
+            const data = await res.json(); // { "1": "CONFIRMED", "2": "PENDING", ... }
+
+            let changed = false;
+            for (const [id, newStatus] of Object.entries(data)) {
+                const cardId = 'order-' + id;
+                if (currentStatuses[cardId] && currentStatuses[cardId] !== newStatus) {
+                    const card = document.getElementById(cardId);
+                    if (card) {
+                        updateBadge(card, newStatus);
+                        currentStatuses[cardId] = newStatus;
+                        changed = true;
+                    }
+                }
+            }
+            if (changed) {
+                showToast('🔔 Un statut de commande a été mis à jour !');
+            }
+        } catch (e) {
+            // Silencieux si offline
+        }
+    }
+
+    // Poll toutes les 10 secondes
+    setInterval(pollStatuses, 10000);
+})();
+</script>
 </body>
 </html>
