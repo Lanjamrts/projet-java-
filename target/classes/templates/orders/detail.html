@@ -35,7 +35,7 @@
         <div class="order-detail-section">
             <h2>Informations</h2>
             <p><strong>Statut :</strong> <span th:text="${order.status}">PENDING</span></p>
-            <p><strong>Date :</strong> <span th:text="${order.createdAt}">Date</span></p>
+            <p><strong>Date :</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span></p>
             <p><strong>Adresse de livraison :</strong></p>
             <p th:text="${order.shippingAddress}">Adresse de livraison</p>
         </div>

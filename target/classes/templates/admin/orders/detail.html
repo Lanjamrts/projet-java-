@@ -46,7 +46,7 @@
                 <div class="order-info-grid">
                     <div>
                         <p><strong>Client :</strong> <span th:text="${order.user.username}">user</span></p>
-                        <p><strong>Date :</strong> <span th:text="${#dates.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span></p>
+                        <p><strong>Date :</strong> <span th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy HH:mm')}">01/01/2026 12:00</span></p>
                         <p><strong>Adresse :</strong></p>
                         <p th:text="${order.shippingAddress}">Adresse de livraison</p>
                     </div>

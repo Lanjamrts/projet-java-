@@ -1,18 +1,22 @@
 package com.marketplace.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "order_items")
-@Data
+@Getter
+@Setter
 public class OrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    // CORRECTION : LAZY remplacé par EAGER + on évite @Data pour ne pas
+    // générer un toString()/hashCode() qui remonte dans Order → boucle infinie
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
@@ -28,5 +32,24 @@ public class OrderItem {
 
     public Double getSubtotal() {
         return price * quantity;
+    }
+
+    // equals/hashCode sur id uniquement
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof OrderItem)) return false;
+        OrderItem other = (OrderItem) o;
+        return id != null && id.equals(other.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return "OrderItem{id=" + id + ", quantity=" + quantity + ", price=" + price + "}";
     }
 }
